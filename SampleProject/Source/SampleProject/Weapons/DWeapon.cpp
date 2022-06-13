@@ -47,6 +47,7 @@ void ADWeapon::AttackEvent_Implementation()
 
 void ADWeapon::FireProjectile_Implementation()
 {
+	//UE_LOG(LogTemp, Warning, TEXT("Test Message!"));
 }
 
 void ADWeapon::SetPlayer(ADCharacter_Base* character)
