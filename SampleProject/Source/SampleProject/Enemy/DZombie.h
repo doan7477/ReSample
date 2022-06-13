@@ -40,7 +40,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void OnConstruction(const FTransform& Transform) override;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -54,7 +54,15 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	void HitEvent(float DamageAmount);
 	void Die();
+
+	UFUNCTION(BlueprintCallable)
+		void HandAttackOnOff(bool on);
+	UFUNCTION()
+		void OnBeginOverlap(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 public:
+	//
+	UPROPERTY(VisibleAnywhere, Category = Mesh)
+		class USphereComponent* AttackCollision;
 	//Type
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Type)
 		EZombieGenderType GenderType;
@@ -66,4 +74,6 @@ public:
 		float CurMaxSpeed;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Data)
 		float HP;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data)
+		float AttackDamage;
 };

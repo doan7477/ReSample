@@ -102,6 +102,7 @@ ADCharacter_Base::ADCharacter_Base()
 	bFiring = false;
 	bAttacking = false;
 	bAiming = false;
+	bHitting = false;
 	GetCharacterMovement()->MaxWalkSpeed = 500.0f;
 	TargetWalkSpeed = 500.0f;
 	//
@@ -154,6 +155,15 @@ void ADCharacter_Base::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("FreeView"), EInputEvent::IE_Released, this, &ADCharacter_Base::FreeViewOff);
 	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &ADCharacter_Base::AimingOn);
 	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Released, this, &ADCharacter_Base::AimingOff);
+}
+
+float ADCharacter_Base::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	CalculateDamage(Damage);
+
+	return Damage;
 }
 
 bool ADCharacter_Base::IsEquipWeapon()
@@ -395,6 +405,28 @@ void ADCharacter_Base::SmoothCamTimelineSetting()
 		SmoothCamCurveTimeline->SetTimelineFinishedFunc(SmoothCamTimelineFinish);
 		SmoothCamCurveTimeline->SetLooping(false);
 	}
+}
+
+void ADCharacter_Base::CalculateDamage(float Damage)
+{
+	if (bHitting) return;
+	bHitting = true;
+
+	HP -= Damage;
+	UE_LOG(LogTemp, Warning, TEXT("Current HP : %f"), HP);
+	if (HP <= 0.0f) Die();
+
+	FTimerHandle DelayHandle;
+	float DelayTime = 0.5f;
+	GetWorld()->GetTimerManager().SetTimer(DelayHandle,
+		FTimerDelegate::CreateLambda([&]()
+			{
+				bHitting = false;
+			}), DelayTime, true);
+}
+
+void ADCharacter_Base::Die()
+{
 }
 
 void ADCharacter_Base::SmoothCamInterpReturn(float value)

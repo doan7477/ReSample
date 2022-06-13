@@ -4,7 +4,10 @@
 #include "DZombie.h"
 #include "DAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/SphereComponent.h"
 #include "DZombieAnimInstance.h"
+#include "../Characters/DCharacter_Base.h"
 
 // Sets default values
 ADZombie::ADZombie()
@@ -15,9 +18,15 @@ ADZombie::ADZombie()
 	//
 	AIControllerClass = ADAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	AttackCollision = CreateDefaultSubobject<USphereComponent>(TEXT("ATTACKCOLLISION"));
+
+	//Attach
+	AttackCollision->SetupAttachment(GetMesh(), TEXT("AttackSocket"));
 
 	//Transform
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -88.0f), FRotator(0.0f, -90.0f, 0.0f));
+	AttackCollision->SetSphereRadius(5.0f);
+	AttackCollision->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
 
 	//CharacterMove
 	bUseControllerRotationYaw = false;
@@ -51,6 +60,12 @@ void ADZombie::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ADZombie::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	AttackCollision->OnComponentBeginOverlap.AddDynamic(this, &ADZombie::OnBeginOverlap);
 }
 
 // Called every frame
@@ -98,5 +113,27 @@ void ADZombie::HitEvent(float DamageAmount)
 
 void ADZombie::Die()
 {
+}
+
+void ADZombie::HandAttackOnOff(bool on)
+{
+	if (on)
+	{
+		AttackCollision->SetCollisionEnabled(ECollisionEnabled::Type::QueryAndPhysics);
+	}
+	else
+	{
+		AttackCollision->SetCollisionEnabled(ECollisionEnabled::Type::NoCollision);
+	}
+}
+
+void ADZombie::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	auto Player = Cast<ADCharacter_Base>(OtherActor);
+	if (Player != nullptr)
+	{
+		//auto PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		UGameplayStatics::ApplyDamage(Player, AttackDamage, NULL, GetOwner(), NULL);
+	}
 }
 

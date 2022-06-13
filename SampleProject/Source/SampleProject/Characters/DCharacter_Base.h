@@ -49,6 +49,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// Take Damage
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 	//Bool Get/Set
 	UFUNCTION(BlueprintPure, Category = Bool)
 		bool IsFiring() const { return bFiring; }
@@ -94,6 +97,9 @@ private:
 	//void SetWeaponState();
 	//Timeline
 	void SmoothCamTimelineSetting();
+
+	void CalculateDamage(float Damage);
+	void Die();
 public:
 	//Camera
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -156,8 +162,12 @@ private:
 	FTimerHandle AutoAttackHandle;
 	bool bAttacking;
 	bool bAiming;
+	bool bHitting;
 	float TargetWalkSpeed;
+
+	float HP = 100.0f;
 
 protected:
 	FVector DirectionToMove = FVector::ZeroVector;
+
 };
